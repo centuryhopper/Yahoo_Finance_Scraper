@@ -1,5 +1,6 @@
 # Yahoo! Finance Scraper
 # Extract financial data and historical stock prices from Yahoo! Finance using background java strings and a hidden api.
+# https://www.youtube.com/watch?v=fw4gK-leExw&list=PLHnSLOMOPT11ORMDapNppzDKBYnWWP66O&index=8
 
 import re
 import json
@@ -182,16 +183,12 @@ reader = csv.reader(file)
 data = list(reader)
 
 # show the first 5 records
-for row in data[:5]:
-    print(row)
-# ['Date', 'Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']
-# ['2019-09-16', '9.360000', '9.450000', '9.240000', '9.300000', '8.996831', '50052600']
-# ['2019-09-17', '9.270000', '9.310000', '9.180000', '9.280000', '8.977483', '27391200']
-# ['2019-09-18', '9.260000', '9.360000', '9.220000', '9.250000', '8.948462', '24309400']
-# ['2019-09-19', '9.310000', '9.330000', '9.100000', '9.100000', '8.803351', '28780700']
+# for row in data[:5]:
+#     print(row)
+
 # You can start to customize this by pulling out the parameters from the URL and putting them into a dictionary.
 
-# stock_url = 'https://query1.finance.yahoo.com/v7/finance/download/{}?'
+stock_url = 'https://query1.finance.yahoo.com/v7/finance/download/{}?'
 
 # params = {
 #     'period1':'1568483641',
@@ -207,12 +204,19 @@ params = {
     'interval':'1d',
     'events':'history'
 }
+
 response = requests.get(stock_url.format(stock), headers=HEADERS, params=params)
+
 # extract the csv data
 file = StringIO(response.text)
 reader = csv.reader(file)
 data = list(reader)
 
+with open(f'{stock}-stock_historical_data.csv', 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerows(data)
+
 # show the first 5 records
-for row in data[:5]:
-    print(row)
+# for row in data[:5]:
+#     print(row)
+
