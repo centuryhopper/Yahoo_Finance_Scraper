@@ -35,25 +35,14 @@ stock = 'F'
 response = requests.get(url_financials.format(stock, stock), headers=HEADERS)
 # print(response.status_code)
 
-
 # Next, parse the html using BeautifulSoup
-
 soup = BeautifulSoup(response.text, 'html.parser')
 # If you were to look at the raw html, you would notice that there is a lot of javascript code and not a lot of html to work with. You may also notice that embedded in the code there are json formatted text strings. Fortunately for us, there is a javascript function, appropriately commented with "--Data--". This function is located inside of a generic "script" tag. However, we can use regular expressions with BeautifulSoup in order to identify the script tag with the function we're looking for.
 
 pattern = re.compile(r'\s--\sData\s--\s')
 script_data = soup.find('script', text=pattern).contents[0]
-# print(script_data)
+
 # There's a lot of good json data here, but it's wrapped in a javascript function, as you can clearly see. However, if we can identify the starting and ending position of this json data, we can slice it and then parse it with the json.loads function.
-
-# beginning
-# print(script_data[:500])
-
-
-# print()
-
-# the end
-# print(script_data[-500:])
 
 # find the starting position of the json string
 start = script_data.find("context")-2
@@ -67,7 +56,6 @@ json_data = json.loads(script_data[start:-12])
 
 # json_data['context'].keys() => dict_keys(['dispatcher', 'options', 'plugins'])
 # json_data['context']['dispatcher']['stores']['QuoteSummaryStore'].keys() => dict_keys(['financialsTemplate', 'cashflowStatementHistory', 'balanceSheetHistoryQuarterly', 'earnings', 'price', 'incomeStatementHistoryQuarterly', 'incomeStatementHistory', 'balanceSheetHistory', 'cashflowStatementHistoryQuarterly', 'quoteType', 'summaryDetail', 'symbol', 'pageViews'])
-
 
 # income statement
 annual_is = json_data['context']['dispatcher']['stores']['QuoteSummaryStore']['incomeStatementHistory']['incomeStatementHistory']
@@ -89,8 +77,7 @@ quarterly_bs = json_data['context']['dispatcher']['stores']['QuoteSummaryStore']
 # The data can be consoldated into an easy to read, or export, data set with a loop
 annual_is_stmts = []
 
-
-# consolidate annual
+#region consolidate annual income statements
 for s in annual_is:
     statement = {}
     for key, val in s.items():
@@ -102,11 +89,13 @@ for s in annual_is:
             continue
     annual_is_stmts.append(statement)
 
+#endregion
+
 # This model can be applied to all other financial statements, as you can see from the examples below.
 annual_cf_stmts = []
 quarterly_cf_stmts = []
 
-# annual
+#region collect annual
 for s in annual_cf:
     statement = {}
     for key, val in s.items():
@@ -118,7 +107,9 @@ for s in annual_cf:
             continue
     annual_cf_stmts.append(statement)
 
-# quarterly
+#endregion
+
+#region collect quarterly
 for s in quarterly_cf:
     statement = {}
     for key, val in s.items():
@@ -129,6 +120,8 @@ for s in quarterly_cf:
         except KeyError:
             continue
     quarterly_cf_stmts.append(statement)
+
+#endregion
 
 
 # Profile Data
@@ -159,13 +152,13 @@ json_data = json.loads(script_data[start:-12])
 
 
 # Statistics
-# response = requests.get(url_stats.format(stock, stock), headers=HEADERS)
-# soup = BeautifulSoup(response.text, 'html.parser')
-# pattern = re.compile(r'\s--\sData\s--\s')
-# script_data = soup.find('script', text=pattern).contents[0]
-# start = script_data.find("context")-2
-# json_data = json.loads(script_data[start:-12])
-# json_data['context']['dispatcher']['stores']['QuoteSummaryStore']['defaultKeyStatistics']
+response = requests.get(url_stats.format(stock, stock), headers=HEADERS)
+soup = BeautifulSoup(response.text, 'html.parser')
+pattern = re.compile(r'\s--\sData\s--\s')
+script_data = soup.find('script', text=pattern).contents[0]
+start = script_data.find("context")-2
+json_data = json.loads(script_data[start:-12])
+json_data['context']['dispatcher']['stores']['QuoteSummaryStore']['defaultKeyStatistics']
 
 
 
@@ -174,17 +167,17 @@ json_data = json.loads(script_data[start:-12])
 # Historical Stock Data
 # This data uses a hidden api, as you can see from the "query" prefix, the version number (V7), and the variety of parameters.
 
-stock_url = 'https://query1.finance.yahoo.com/v7/finance/download/F?period1=1568483641&period2=1600106041&interval=1d&events=history'
-response = requests.get(stock_url, headers=HEADERS)
-# extract the csv data
-# convert strings to files
-file = StringIO(response.text)
-reader = csv.reader(file)
-data = list(reader)
+# stock_url = 'https://query1.finance.yahoo.com/v7/finance/download/F?period1=1568483641&period2=1600106041&interval=1d&events=history'
+# response = requests.get(stock_url, headers=HEADERS)
+# # extract the csv data
+# # convert strings to files
+# file = StringIO(response.text)
+# reader = csv.reader(file)
+# data = list(reader)
 
-# show the first 5 records
-# for row in data[:5]:
-#     print(row)
+# # show the first 5 records
+# # for row in data[:5]:
+# #     print(row)
 
 # You can start to customize this by pulling out the parameters from the URL and putting them into a dictionary.
 
